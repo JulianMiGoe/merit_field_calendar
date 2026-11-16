@@ -424,6 +424,17 @@ details summary{cursor:pointer;font-size:13px;font-weight:500;color:var(--brand-
 .hint.crit{background:var(--crit-bg);border-color:var(--crit-border);color:#7a1d1d}
 .hint.ok{background:#eef8f1;border-color:#cfe9d7;color:#1d5b31}
 
+/* ---------- sign-in gate ---------- */
+.gate{position:fixed;inset:0;z-index:80;background:rgba(15,42,67,.55);display:grid;place-items:center;padding:16px}
+.gate-card{background:#fff;border-radius:12px;box-shadow:0 20px 50px rgba(15,42,67,.35);width:min(440px,100%);padding:24px 24px 20px;display:flex;flex-direction:column;gap:12px}
+.gate-card h2{font-size:19px;font-weight:600}
+.gate-card p{margin:0;font-size:13.5px;color:var(--ink-2)}
+.gate-card form{display:flex;flex-direction:column;gap:10px}
+.gate-or{display:flex;align-items:center;gap:10px;color:var(--ink-3);font-size:12px}.gate-or::before,.gate-or::after{content:'';flex:1;height:1px;background:var(--line)}
+.gate-status{font-size:13px}
+.gate-status.err{color:var(--crit)}
+.gate-status.ok{color:var(--good)}
+
 /* ---------- tooltip, toast, footer ---------- */
 #tip{position:fixed;left:0;top:0;z-index:60;pointer-events:none;max-width:330px;background:var(--brand);color:#fff;font-size:12px;line-height:1.45;padding:7px 10px;border-radius:6px;white-space:pre-line;box-shadow:0 6px 18px rgba(15,42,67,.25)}
 #toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:70;display:flex;gap:12px;align-items:center;background:var(--brand);color:#fff;padding:10px 14px;border-radius:8px;font-size:13px;box-shadow:0 8px 24px rgba(15,42,67,.28);max-width:calc(100% - 32px)}
@@ -583,6 +594,15 @@ details summary{cursor:pointer;font-size:13px;font-weight:500;color:var(--brand-
 
 <div class="backdrop" id="backdrop" hidden></div>
 <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="d-title" hidden></aside>
+<div class="gate" id="gate" hidden><div class="gate-card" role="dialog" aria-modal="true" aria-labelledby="gate-title">
+  <h2 id="gate-title">Sign in to the team plan</h2>
+  <p id="gate-msg">Only approved team members can open this plan. Enter your email address and we send you a sign-in link (no password), or use your Google account. Either way, the address must be on the team list.</p>
+  <form id="gate-form"><label class="fld" for="gate-email"><span class="lbl">Your email address</span><input class="inp" type="email" id="gate-email" autocomplete="email" required></label><button class="btn primary" type="submit" id="gate-btn">Send sign-in link</button></form>
+  <div class="gate-or"><span>or</span></div>
+  <button class="btn" type="button" id="gate-google">Sign in with Google</button>
+  <div class="gate-status" id="gate-status" role="status"></div>
+  <div><button class="btn small ghost" type="button" data-act="sync-off">Use without team sync</button></div>
+</div></div>
 <div id="tip" role="tooltip" hidden></div>
 <div id="toast" role="status" aria-live="polite" hidden></div>
 <input type="file" id="import-file" accept=".json,application/json" hidden>
@@ -603,7 +623,7 @@ const DEFAULT_SYNC = null;
 const BUILD = {target: 'standalone', seed: {"people":{"viktoria":{"name":"Viktoria","short":"Vi","role":"","order":0,"active":true},"julian":{"name":"Julian","short":"Ju","role":"","order":1,"active":true},"clarisse":{"name":"Clarisse","short":"Cl","role":"","order":2,"active":true},"simon":{"name":"Simon","short":"Si","role":"","order":3,"active":true},"kai":{"name":"Kai","short":"Ka","role":"","order":4,"active":true},"linnea":{"name":"Linnea","short":"Li","role":"","order":5,"active":true},"ella":{"name":"Ella","short":"El","role":"","order":6,"active":true},"jacky":{"name":"Jacky","short":"Ja","role":"","order":7,"active":true},"farah":{"name":"Farah","short":"Fa","role":"Guest researcher (2026)","order":8,"active":true},"nadine":{"name":"Nadine","short":"Na","role":"","order":9,"active":true}},"params":{"p01":{"theme":"mon","name":"Air temperature","method":"Met station · experiment check","y26":"yes","s27":"yes","resp":"Weekly rotation","timing":"Continuous","notes":"","mode":"continuous","order":1,"reviewed":false},"p02":{"theme":"mon","name":"Wind speed","method":"Met station · experiment check","y26":"yes","s27":"yes","resp":"Weekly rotation","timing":"Continuous","notes":"","mode":"continuous","order":2,"reviewed":false},"p03":{"theme":"mon","name":"Wind direction","method":"Met station · experiment check","y26":"yes","s27":"yes","resp":"Weekly rotation","timing":"Continuous","notes":"","mode":"continuous","order":3,"reviewed":false},"p04":{"theme":"mon","name":"Humidity","method":"Met station · experiment check","y26":"yes","s27":"yes","resp":"Weekly rotation","timing":"Continuous","notes":"","mode":"continuous","order":4,"reviewed":false},"p05":{"theme":"mon","name":"PAR","method":"Met station · experiment check","y26":"yes","s27":"yes","resp":"Weekly rotation","timing":"Continuous","notes":"","mode":"continuous","order":5,"reviewed":false},"p06":{"theme":"mon","name":"VPD (vapour pressure deficit)","method":"Met station · experiment check","y26":"yes","s27":"yes","resp":"Weekly rotation","timing":"Continuous","notes":"","mode":"continuous","order":6,"reviewed":false},"p07":{"theme":"mon","name":"Precipitation","method":"DWD data","y26":"yes","s27":"yes","resp":"Viktoria & Julian","timing":"Continuous","notes":"","mode":"continuous","order":7,"reviewed":false},"p08":{"theme":"mon","name":"Soil temperature (entire year)","method":"Experiment check","y26":"yes","s27":"yes","resp":"Viktoria & Julian with Simon","timing":"Continuous","notes":"","mode":"continuous","order":8,"reviewed":false},"p09":{"theme":"mon","name":"Temperature","method":"Sondes","y26":"yes","s27":"yes","resp":"Weekly rotation","timing":"Continuous","notes":"","mode":"continuous","order":9,"reviewed":false},"p10":{"theme":"mon","name":"Redox potential","method":"Automated sensors","y26":"yes","s27":"yes","resp":"Julian","timing":"Continuous","notes":"","mode":"continuous","order":10,"reviewed":false},"p11":{"theme":"mon","name":"Vegetation period","method":"NDVI","y26":"yes","s27":"yes","resp":"Weekly rotation","timing":"Continuous","notes":"Possible master's student project.","mode":"continuous","order":11,"reviewed":false},"p12":{"theme":"hyd","name":"Water level","method":"2 wells (PZ & HM)","y26":"yes","s27":"yes","resp":"Viktoria & Julian & weekly rotation","timing":"Continuous","notes":"","mode":"continuous","order":12,"reviewed":false},"p13":{"theme":"hyd","name":"Sediment accretion","method":"SET arms","y26":"yes","s27":"yes","resp":"Viktoria","timing":"Mar & Oct","notes":"","mode":"campaign","order":13,"reviewed":false},"p14":{"theme":"hyd","name":"Sediment accumulation","method":"Sediment traps","y26":"no","s27":"no","resp":"","timing":"","notes":"Possible master's student project, but is it promising?","mode":"campaign","order":14,"reviewed":false},"p15":{"theme":"hyd","name":"Elevation / laser levelling","method":"DGPS","y26":"2027","s27":"new","resp":"","timing":"","notes":"Agree on the protocol before we do it (all subplots?). Check raw data; talk with Steffi. Bachelor's or master's student?","mode":"campaign","order":15,"reviewed":false},"p16":{"theme":"veg","name":"Species composition","method":"Species assessment","y26":"yes","s27":"yes","resp":"Kai & Viktoria","timing":"Aug 10–14 (2026)","notes":"","mode":"campaign","order":16,"reviewed":false},"p17":{"theme":"veg","name":"Max & average stem height","method":"Species assessment","y26":"yes","s27":"yes","resp":"Kai & Viktoria","timing":"Aug 10–14 (2026)","notes":"","mode":"campaign","order":17,"reviewed":false},"p18":{"theme":"veg","name":"% cover","method":"Species assessment","y26":"yes","s27":"yes","resp":"Kai & Viktoria","timing":"Aug 10–14 (2026)","notes":"","mode":"campaign","order":18,"reviewed":false},"p19":{"theme":"veg","name":"Stem density","method":"AGB harvesting & stem counting","y26":"yes","s27":"yes","resp":"Viktoria","timing":"","notes":"Important parameter if we get a student working on vegetation.","mode":"campaign","order":19,"reviewed":false},"p20":{"theme":"veg","name":"Aboveground biomass","method":"Destructive harvest","y26":"yes","s27":"yes","resp":"Viktoria","timing":"","notes":"","mode":"campaign","order":20,"reviewed":false},"p21":{"theme":"veg","name":"Aboveground biomass","method":"Photos","y26":"no","s27":"no","resp":"","timing":"","notes":"Have these ever been analysed?","mode":"campaign","order":21,"reviewed":false},"p22":{"theme":"veg","name":"Belowground biomass","method":"Destructive","y26":"yes","s27":"yes","resp":"Viktoria","timing":"","notes":"","mode":"campaign","order":22,"reviewed":false},"p23":{"theme":"veg","name":"Belowground biomass","method":"Rhizotron","y26":"2027","s27":"new","resp":"","timing":"","notes":"Can we see warming effects easily? Want to know this first; once or twice a year may suffice.","mode":"campaign","order":23,"reviewed":false},"p24":{"theme":"veg","name":"Leaf samples","method":"SLA; C/N, stable isotopes","y26":"yes?","s27":"maybe","resp":"Ella?","timing":"","notes":"","mode":"campaign","order":24,"reviewed":false},"p25":{"theme":"veg","name":"Stem flexibility (S. anglica, E. athericus)","method":"3-point bending test","y26":"yes","s27":"yes","resp":"Kai & Linnea","timing":"","notes":"Master's project Malina.","mode":"campaign","order":25,"reviewed":false},"p26":{"theme":"veg","name":"Rhizosphere","method":"Exudation? ROL? Minirhizotron + optode system","y26":"2027","s27":"new","resp":"","timing":"","notes":"Simon is building a prototype which could be used in 2027; an MSc student (Randon) is interested in working with exudates.","mode":"campaign","order":26,"reviewed":false},"p27":{"theme":"veg","name":"Root turnover","method":"Root cages, rhizotron","y26":"2027","s27":"new","resp":"","timing":"","notes":"Wait for Lina's data and future project directions.","mode":"campaign","order":27,"reviewed":false},"p28":{"theme":"veg","name":"Phenology (flowering, germination)","method":"NDVI & phenology of LM with cameras","y26":"maybe","s27":"maybe","resp":"Ella, Jacky","timing":"","notes":"Based on Herle's thesis, flowering could be analysed together with NDVI data.","mode":"campaign","order":28,"reviewed":false},"p29":{"theme":"veg","name":"Root ingrowth","method":"Yearly coring / sediment replacement","y26":"2027","s27":"yes","resp":"","timing":"","notes":"Installed Jan 2022, continued through 2025, paused in 2026.","mode":"campaign","order":29,"reviewed":false},"p30":{"theme":"veg","name":"Limonium fungi","method":"","y26":"–","s27":"open","resp":"Kai, Jacky","timing":"","notes":"Based on Herle's thesis; talk to Martin (AG Begerow).","mode":"campaign","order":30,"reviewed":false},"p31":{"theme":"ghg","name":"CO₂","method":"Licor","y26":"yes","s27":"yes","resp":"Viktoria & Clarisse, Nadine?","timing":"","notes":"Paired with Farah's measurements & porewater samplers. Collaboration possibilities with AG Kutzbach and the DeepSoil network.","mode":"campaign","order":31,"reviewed":false},"p32":{"theme":"ghg","name":"CH₄","method":"Licor","y26":"yes","s27":"yes","resp":"Viktoria & Clarisse, Nadine?","timing":"","notes":"Paired with porewater samplers.","mode":"campaign","order":32,"reviewed":false},"p33":{"theme":"ghg","name":"N₂O","method":"Licor","y26":"no","s27":"no","resp":"","timing":"","notes":"Can only be done with other equipment (maybe from Münster).","mode":"campaign","order":33,"reviewed":false},"p34":{"theme":"soil","name":"Soil reduction index","method":"IRIS sticks","y26":"yes","s27":"yes","resp":"Julian, Clarisse","timing":"","notes":"Good data exist; only aligned with GHG campaigns / porewater sampling.","mode":"campaign","order":34,"reviewed":false},"p35":{"theme":"soil","name":"Bulk density (g/cm³)","method":"Volumetric determination","y26":"yes","s27":"yes","resp":"Jacky? & Viktoria","timing":"","notes":"","mode":"campaign","order":35,"reviewed":false},"p36":{"theme":"soil","name":"C/N content & OM source (stable isotopes)","method":"EA/IRMS","y26":"yes","s27":"yes","resp":"Jacky? & Viktoria","timing":"","notes":"","mode":"campaign","order":36,"reviewed":false},"p37":{"theme":"soil","name":"Water content","method":"Wet vs dry weight (drying oven)","y26":"yes","s27":"yes","resp":"Viktoria, Jacky, Farah","timing":"Jun/Jul?","notes":"","mode":"campaign","order":37,"reviewed":false},"p38":{"theme":"soil","name":"Teabag index","method":"Teabags","y26":"2026/27","s27":"yes","resp":"Viktoria, Julian","timing":"","notes":"Align with Farah's litterbags.","mode":"campaign","order":38,"reviewed":false},"p39":{"theme":"soil","name":"SOM decomposition","method":"SOM sticks","y26":"yes","s27":"yes","resp":"Julian","timing":"","notes":"","mode":"campaign","order":39,"reviewed":false},"p40":{"theme":"soil","name":"Litter decomposition","method":"Litterbags","y26":"yes","s27":"yes","resp":"Farah & Viktoria","timing":"","notes":"","mode":"campaign","order":40,"reviewed":false},"p41":{"theme":"pw","name":"Dissolved gases","method":"GC-MS","y26":"yes","s27":"yes","resp":"Clarisse, Julian & Viktoria","timing":"","notes":"Dissolved CH₄ has the highest priority of all porewater characteristics.","mode":"campaign","order":41,"reviewed":false},"p42":{"theme":"pw","name":"TEAs (dissolved sulfate, nitrate, nitrite)","method":"","y26":"yes","s27":"yes","resp":"Clarisse, Julian & Viktoria","timing":"","notes":"","mode":"campaign","order":42,"reviewed":false},"p43":{"theme":"pw","name":"TOC/DOC","method":"","y26":"yes","s27":"yes","resp":"Clarisse, Julian & Viktoria","timing":"","notes":"Ina has offered use of her TOC/DOC machine.","mode":"campaign","order":43,"reviewed":false},"p44":{"theme":"mic","name":"Exoenzyme assays","method":"","y26":"2026/27","s27":"yes","resp":"Julian","timing":"","notes":"","mode":"campaign","order":44,"reviewed":false},"p45":{"theme":"mic","name":"DNA/RNA","method":"Amplicon sequencing","y26":"2026 & 27","s27":"yes","resp":"Viktoria & Julian","timing":"","notes":"Sampling in both years; consider repeating RNA extraction/cDNA sequencing versus 18O-qSIP costs.","mode":"campaign","order":45,"reviewed":false},"p46":{"theme":"mic","name":"Taxon-specific growth rates (bacteria, archaea)","method":"18O-qSIP + amplicon sequencing","y26":"yes","s27":"yes","resp":"Viktoria","timing":"TBD","notes":"Also yields community composition data, but ONLY in the pioneer zone and at one depth.","mode":"campaign","order":46,"reviewed":false},"p47":{"theme":"mic","name":"Group-specific growth rates (bacteria, fungi) & microbial CUE","method":"2H-FAME-SIP","y26":"yes","s27":"yes","resp":"Viktoria & Jacky","timing":"TBD","notes":"","mode":"campaign","order":47,"reviewed":false},"p48":{"theme":"fau","name":"Macroinvertebrate abundance","method":"","y26":"yes","s27":"yes","resp":"Farah & Viktoria","timing":"","notes":"","mode":"campaign","order":48,"reviewed":false},"p49":{"theme":"fau","name":"Macroinvertebrate feeding activity","method":"","y26":"yes","s27":"yes","resp":"Farah & Viktoria","timing":"","notes":"","mode":"campaign","order":49,"reviewed":false},"p50":{"theme":"fau","name":"Macroinvertebrate predation activity","method":"","y26":"yes","s27":"yes","resp":"Farah & Viktoria","timing":"","notes":"","mode":"campaign","order":50,"reviewed":false}},"campaigns":{"c-set-spring":{"title":"SET measurements (spring)","theme":"hyd","status":"tentative","start":"2027-03-01","end":"2027-03-31","lead":"viktoria","crew":[],"zones":["PZ","LM","HM"],"params":["p13"],"notes":"2026 plan: March & October. Pick the exact days and narrow the window.","source":"From the 2026 plan (Mar & Oct)","checklist":[],"logistics":"","createdAt":1794832883990,"updatedAt":1794832883990,"updatedBy":""},"c-set-autumn":{"title":"SET measurements (autumn)","theme":"hyd","status":"tentative","start":"2027-10-01","end":"2027-10-31","lead":"viktoria","crew":[],"zones":["PZ","LM","HM"],"params":["p13"],"notes":"2026 plan: March & October. Pick the exact days and narrow the window.","source":"From the 2026 plan (Mar & Oct)","checklist":[],"logistics":"","createdAt":1794832883990,"updatedAt":1794832883990,"updatedBy":""},"c-veg-survey":{"title":"Vegetation survey","theme":"veg","status":"tentative","start":"2027-08-09","end":"2027-08-13","lead":"kai","crew":["viktoria"],"zones":["PZ","LM","HM"],"params":["p16","p17","p18"],"notes":"Placeholder: the matching Mon–Fri week to the 2026 survey (Aug 10–14, 2026).","source":"From the 2026 plan (Aug 10–14, 2026)","checklist":[],"logistics":"","createdAt":1794832883990,"updatedAt":1794832883990,"updatedBy":""},"c-biomass":{"title":"Biomass harvest","theme":"veg","status":"tentative","start":"2027-08-30","end":"2027-09-01","lead":"viktoria","crew":["julian"],"zones":["PZ","LM","HM"],"params":["p19","p20","p22"],"notes":"Placeholder: same weekdays as the 2026 harvest (Mon–Wed, Aug 31–Sep 2, 2026).","checklist":[{"t":"Recruit volunteer helpers via the ag-pflanzoek mailing list","d":false}],"source":"From the 2026 plan (Aug 31–Sep 2, 2026)","logistics":"","createdAt":1794832883990,"updatedAt":1794832883990,"updatedBy":""},"c-soil-water":{"title":"Soil water content sampling","theme":"soil","status":"tentative","start":"2027-06-01","end":"2027-07-31","lead":"viktoria","crew":["jacky"],"zones":[],"params":["p37"],"notes":"2026 plan said 'Jun/Jul?'. Narrow down once fixed.","source":"From the 2026 plan (Jun/Jul?)","checklist":[],"logistics":"","createdAt":1794832883990,"updatedAt":1794832883990,"updatedBy":""},"c-dgps":{"title":"Elevation survey (DGPS)","theme":"hyd","status":"idea","start":null,"end":null,"lead":"","crew":[],"zones":["PZ","LM","HM"],"params":["p15"],"notes":"Planned for 2027. Agree on the protocol first (all subplots?).","source":"From the 2026 plan","checklist":[],"logistics":"","createdAt":1794832883990,"updatedAt":1794832883990,"updatedBy":""},"c-ghg-pw":{"title":"GHG fluxes + porewater","theme":"ghg","status":"idea","start":null,"end":null,"lead":"viktoria","crew":["clarisse","julian"],"zones":[],"params":["p31","p32","p41","p42","p43","p34"],"notes":"CO₂/CH₄ paired with porewater samplers; IRIS sticks only alongside GHG/porewater sampling. Duplicate this card for each sampling date.","source":"From the 2026 plan","checklist":[],"logistics":"","createdAt":1794832883990,"updatedAt":1794832883990,"updatedBy":""},"c-microbes":{"title":"Microbial sampling (DNA/RNA, enzymes)","theme":"mic","status":"idea","start":null,"end":null,"lead":"julian","crew":["viktoria"],"zones":[],"params":["p45","p44"],"notes":"DNA/RNA sampling in both 2026 and 2027.","source":"From the 2026 plan","checklist":[],"logistics":"","createdAt":1794832883990,"updatedAt":1794832883990,"updatedBy":""},"c-sip":{"title":"qSIP & FAME-SIP sampling","theme":"mic","status":"idea","start":null,"end":null,"lead":"viktoria","crew":["jacky"],"zones":[],"params":["p46","p47"],"notes":"18O-qSIP only in the pioneer zone, at one depth.","source":"From the 2026 plan","checklist":[],"logistics":"","createdAt":1794832883990,"updatedAt":1794832883990,"updatedBy":""},"c-ingrowth":{"title":"Root ingrowth cores","theme":"veg","status":"idea","start":null,"end":null,"lead":"","crew":[],"zones":[],"params":["p29"],"notes":"Installed Jan 2022, continued through 2025, paused in 2026; resumes in 2027.","source":"From the 2026 plan","checklist":[],"logistics":"","createdAt":1794832883990,"updatedAt":1794832883990,"updatedBy":""},"c-rhizo":{"title":"Rhizosphere: minirhizotron + optode","theme":"veg","status":"idea","start":null,"end":null,"lead":"simon","crew":[],"zones":[],"params":["p26"],"notes":"Simon's prototype could be used in 2027; MSc student (Randon) interested in exudates.","source":"From the 2026 plan","checklist":[],"logistics":"","createdAt":1794832883990,"updatedAt":1794832883990,"updatedBy":""},"c-teabag":{"title":"Teabag index & litterbags","theme":"soil","status":"idea","start":null,"end":null,"lead":"viktoria","crew":["julian"],"zones":[],"params":["p38","p40"],"notes":"Align the teabags with Farah's litterbags.","source":"From the 2026 plan","checklist":[],"logistics":"","createdAt":1794832883990,"updatedAt":1794832883990,"updatedBy":""},"c-macro":{"title":"Macroinvertebrates","theme":"fau","status":"idea","start":null,"end":null,"lead":"farah","crew":["viktoria"],"zones":[],"params":["p48","p49","p50"],"notes":"","source":"From the 2026 plan","checklist":[],"logistics":"","createdAt":1794832883990,"updatedAt":1794832883990,"updatedBy":""}},"rotation":{"2027":{"weeks":{}}},"absences":{},"lodging":{"bredstedt":{"name":"Apartment Bredstedt","beds":6,"notes":""}},"stays":{}}};
 const STANDALONE = BUILD.target === 'standalone';
 const FIREBASE_VERSION = '12.2.1';
-const LS_DATA = 'merit-planner-2027-data', LS_SYNC = 'merit-planner-2027-sync';
+const LS_DATA = 'merit-planner-2027-data', LS_SYNC = 'merit-planner-2027-sync', LS_EMAIL = 'merit-planner-signin-email', LS_BACKUP = 'merit-planner-last-backup';
 
 // ===================== reference data =====================
 const CAL = {"phases":[{"type":"last","date":"2026-12-01","time":"07:08"},{"type":"new","date":"2026-12-09","time":"01:51"},{"type":"first","date":"2026-12-17","time":"06:42"},{"type":"full","date":"2026-12-24","time":"02:28"},{"type":"last","date":"2026-12-30","time":"19:59"},{"type":"new","date":"2027-01-07","time":"21:24"},{"type":"first","date":"2027-01-15","time":"21:34"},{"type":"full","date":"2027-01-22","time":"13:17"},{"type":"last","date":"2027-01-29","time":"11:55"},{"type":"new","date":"2027-02-06","time":"16:56"},{"type":"first","date":"2027-02-14","time":"08:58"},{"type":"full","date":"2027-02-21","time":"00:23"},{"type":"last","date":"2027-02-28","time":"06:16"},{"type":"new","date":"2027-03-08","time":"10:29"},{"type":"first","date":"2027-03-15","time":"17:25"},{"type":"full","date":"2027-03-22","time":"11:43"},{"type":"last","date":"2027-03-30","time":"02:53"},{"type":"new","date":"2027-04-07","time":"01:51"},{"type":"first","date":"2027-04-14","time":"00:56"},{"type":"full","date":"2027-04-21","time":"00:27"},{"type":"last","date":"2027-04-28","time":"22:17"},{"type":"new","date":"2027-05-06","time":"12:58"},{"type":"first","date":"2027-05-13","time":"06:43"},{"type":"full","date":"2027-05-20","time":"12:58"},{"type":"last","date":"2027-05-28","time":"15:57"},{"type":"new","date":"2027-06-04","time":"21:40"},{"type":"first","date":"2027-06-11","time":"12:56"},{"type":"full","date":"2027-06-19","time":"02:44"},{"type":"last","date":"2027-06-27","time":"06:54"},{"type":"new","date":"2027-07-04","time":"05:01"},{"type":"first","date":"2027-07-10","time":"20:38"},{"type":"full","date":"2027-07-18","time":"17:44"},{"type":"last","date":"2027-07-26","time":"18:54"},{"type":"new","date":"2027-08-02","time":"12:05"},{"type":"first","date":"2027-08-09","time":"06:54"},{"type":"full","date":"2027-08-17","time":"09:28"},{"type":"last","date":"2027-08-25","time":"04:27"},{"type":"new","date":"2027-08-31","time":"19:41"},{"type":"first","date":"2027-09-07","time":"20:31"},{"type":"full","date":"2027-09-16","time":"01:03"},{"type":"last","date":"2027-09-23","time":"12:20"},{"type":"new","date":"2027-09-30","time":"04:35"},{"type":"first","date":"2027-10-07","time":"13:47"},{"type":"full","date":"2027-10-15","time":"15:46"},{"type":"last","date":"2027-10-22","time":"19:29"},{"type":"new","date":"2027-10-29","time":"15:36"},{"type":"first","date":"2027-11-06","time":"08:59"},{"type":"full","date":"2027-11-14","time":"04:25"},{"type":"last","date":"2027-11-21","time":"01:48"},{"type":"new","date":"2027-11-28","time":"04:24"},{"type":"first","date":"2027-12-06","time":"06:22"},{"type":"full","date":"2027-12-13","time":"17:08"},{"type":"last","date":"2027-12-20","time":"10:10"},{"type":"new","date":"2027-12-27","time":"21:12"},{"type":"first","date":"2028-01-05","time":"02:40"},{"type":"full","date":"2028-01-12","time":"05:02"}],"sun":["08471609","08461610","08461611","08461613","08451614","08451615","08441617","08441618","08431620","08421621","08421623","08411624","08401626","08391628","08381629","08371631","08361633","08351635","08341637","08321639","08311640","08301642","08281644","08271646","08251648","08241650","08221652","08211654","08191656","08171658","08161700","08141702","08121704","08101706","08091708","08071710","08051713","08031715","08011717","07591719","07571721","07551723","07531725","07511727","07481729","07461731","07441733","07421735","07401737","07381739","07351742","07331744","07311746","07281748","07261750","07241752","07211754","07191756","07171758","07141800","07121802","07101804","07071806","07051808","07021810","07001812","06571814","06551816","06521818","06501820","06471822","06451824","06431826","06401827","06381829","06351831","06331833","06301835","06271837","06251839","06221841","06201843","06171845","06151847","06121849","06101851","07071953","07051954","07021956","07001958","06572000","06552002","06522004","06502006","06472008","06452010","06422012","06402014","06372016","06352017","06332019","06302021","06282023","06252025","06232027","06202029","06182031","06162033","06132035","06112037","06092039","06062040","06042042","06022044","06002046","05572048","05552050","05532052","05512054","05492056","05462058","05442059","05422101","05402103","05382105","05362107","05342109","05322111","05302112","05282114","05262116","05252118","05232120","05212121","05192123","05172125","05162127","05142128","05132130","05112132","05092133","05082135","05072136","05052138","05042139","05032141","05012142","05002144","04592145","04582147","04572148","04562149","04552150","04542152","04532153","04522154","04522155","04512156","04502157","04502158","04492159","04492159","04482200","04482201","04482202","04482202","04472203","04472203","04472204","04472204","04472204","04482204","04482205","04482205","04482205","04492205","04492205","04502205","04502204","04512204","04522204","04522203","04532203","04542202","04552202","04562201","04572201","04582200","04592159","05002158","05012157","05022156","05042155","05052154","05062153","05082152","05092151","05102150","05122148","05132147","05152145","05162144","05182143","05192141","05212139","05232138","05242136","05262135","05282133","05292131","05312129","05332127","05342126","05362124","05382122","05402120","05412118","05432116","05452114","05472112","05492110","05502108","05522106","05542103","05562101","05582059","06002057","06012055","06032052","06052050","06072048","06092045","06112043","06122041","06142038","06162036","06182034","06202031","06222029","06232026","06252024","06272022","06292019","06312017","06332014","06342012","06362009","06382007","06402004","06422002","06441959","06451957","06471954","06491952","06511949","06531947","06541944","06561942","06581939","07001937","07021934","07041931","07051929","07071926","07091924","07111921","07131919","07151916","07161914","07181911","07201909","07221906","07241904","07261901","07281859","07301856","07311854","07331851","07351849","07371846","07391844","07411841","07431839","07451836","07471834","07491832","07501829","07521827","07541824","07561822","07581820","08001817","08021815","08041813","08061810","08081808","08101806","08121804","08141802","08161759","08181757","08201755","08221753","07241651","07261649","07281647","07301645","07321643","07341641","07361639","07381637","07401635","07421633","07441632","07461630","07481628","07501626","07521625","07541623","07561621","07581620","08001618","08011617","08031616","08051614","08071613","08091612","08111610","08121609","08141608","08161607","08181606","08191605","08211604","08221603","08241603","08261602","08271601","08281601","08301600","08311600","08331559","08341559","08351559","08361558","08371558","08381558","08391558","08401558","08411558","08421558","08431559","08431559","08441559","08451600","08451600","08461601","08461601","08461602","08471603","08471604","08471605","08471605","08471606","08471608"],"holidays":[{"date":"2027-01-01","name":"New Year's Day","dow":"Fri"},{"date":"2027-03-26","name":"Good Friday","dow":"Fri"},{"date":"2027-03-29","name":"Easter Monday","dow":"Mon"},{"date":"2027-05-01","name":"Labour Day","dow":"Sat"},{"date":"2027-05-06","name":"Ascension Day","dow":"Thu"},{"date":"2027-05-17","name":"Whit Monday","dow":"Mon"},{"date":"2027-10-03","name":"German Unity Day","dow":"Sun"},{"date":"2027-10-31","name":"Reformation Day","dow":"Sun"},{"date":"2027-12-25","name":"Christmas Day","dow":"Sat"},{"date":"2027-12-26","name":"2nd Day of Christmas","dow":"Sun"}],"easter":"2027-03-28"};
@@ -916,7 +936,21 @@ async function firebaseStore(cfg, teamId){
   const base = `https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/`;
   const [A, F, AU] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-firestore.js'), import(base + 'firebase-auth.js')]);
   const app = A.initializeApp(cfg, 'merit-' + teamId);
-  await AU.signInAnonymously(AU.getAuth(app));
+  const auth = AU.getAuth(app);
+  await auth.authStateReady();
+  if (AU.isSignInWithEmailLink(auth, location.href)){
+    let email = ''; try { email = localStorage.getItem(LS_EMAIL) || ''; } catch (e){}
+    for (;;){
+      if (!email) email = await gateAsk('finish');
+      try { await AU.signInWithEmailLink(auth, email, location.href); break; }
+      catch (e){ if (e && e.code === 'auth/invalid-email'){ email = ''; gateStatus('That email does not match the one the link was sent to.', 'err'); continue; } gateStatus(authMessage(e), 'err'); throw e; }
+    }
+    try { localStorage.removeItem(LS_EMAIL); } catch (e){}
+    history.replaceState(null, '', location.pathname);
+  }
+  const u = auth.currentUser;
+  if (!u || u.isAnonymous || !u.email){ gateSend(auth, AU); return null; }
+  gateHide(); S.userEmail = u.email; S.signOut = () => AU.signOut(auth);
   const db = F.getFirestore(app);
   const root = `teams/${teamId}`;
   const ref = p => F.doc(db, `${root}/${p}`);
@@ -953,14 +987,57 @@ function localStore(initial, persistKey){
   };
 }
 
+// ===================== sign-in gate =====================
+function authMessage(e){
+  const c = (e && e.code) || '';
+  if (c === 'auth/operation-not-allowed') return 'This sign-in method is not switched on in Firebase (Authentication → Sign-in method: Email/Password with Email link, or Google).';
+  if (c === 'auth/unauthorized-continue-uri' || c === 'auth/unauthorized-domain') return `This web address (${location.hostname || 'local file'}) is not an authorised domain in Firebase (Authentication → Settings → Authorised domains).`;
+  if (c === 'auth/invalid-action-code' || c === 'auth/expired-action-code') return 'This sign-in link has expired or was already used. Ask for a new one below.';
+  if (c === 'auth/quota-exceeded') return 'The free Firebase plan sends only 5 sign-in emails a day, and today’s are used up. Use “Sign in with Google” or try again tomorrow.';
+  if (c === 'auth/popup-closed-by-user' || c === 'auth/cancelled-popup-request') return 'Google sign-in was closed before it finished.';
+  if (c === 'auth/popup-blocked') return 'The browser blocked the Google sign-in window. Allow pop-ups for this page and try again.';
+  if (c === 'auth/invalid-email') return 'That is not a valid email address.';
+  return 'Sign-in failed' + (c ? ` (${c})` : '') + '.';
+}
+function gateShow(msg, btn){ $('#gate').hidden = false; if (msg) $('#gate-msg').textContent = msg; if (btn) $('#gate-btn').textContent = btn; setTimeout(() => $('#gate-email').focus(), 30); }
+function gateHide(){ $('#gate').hidden = true; }
+function gateStatus(t, cls){ const el = $('#gate-status'); el.textContent = t || ''; el.className = 'gate-status' + (cls ? ' ' + cls : ''); }
+let gateHandler = null;
+$('#gate-form').addEventListener('submit', e => { e.preventDefault(); const v = $('#gate-email').value.trim(); if (v && gateHandler) gateHandler(v); });
+function gateAsk(){
+  $('#gate-google').hidden = true;
+  gateShow('To finish signing in, enter the email address the link was sent to.', 'Finish sign-in');
+  return new Promise(res => { gateHandler = v => { gateHandler = null; gateStatus('Signing in…'); res(v); }; });
+}
+function gateSend(auth, AU){
+  S.mode = 'signin'; renderHeader(); gateShow(null, 'Send sign-in link');
+  $('#gate-google').hidden = false;
+  $('#gate-google').onclick = async () => {
+    gateStatus('Waiting for Google…');
+    try { await AU.signInWithPopup(auth, new AU.GoogleAuthProvider()); location.reload(); }
+    catch (e){ gateStatus(authMessage(e), 'err'); }
+  };
+  gateHandler = async email => {
+    gateStatus('Sending…');
+    const join = S.sync ? b64e({firebase: S.sync.firebase, teamId: S.sync.teamId}) : '';
+    try {
+      await AU.sendSignInLinkToEmail(auth, email, {url: location.href.split(/[?#]/)[0] + (join ? '?join=' + join : ''), handleCodeInApp: true});
+      try { localStorage.setItem(LS_EMAIL, email); } catch (e){}
+      gateStatus(`Link sent to ${email}. Open it from your inbox; it signs you in here. Check the spam folder if nothing arrives within a few minutes.`, 'ok');
+    } catch (e){ gateStatus(authMessage(e), 'err'); }
+  };
+}
+
 // ===================== connecting =====================
 function b64e(o){ return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
 function b64d(s){ s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '='; return JSON.parse(decodeURIComponent(escape(atob(s)))); }
 function validSync(o){ return o && typeof o === 'object' && o.firebase && typeof o.firebase === 'object' && o.firebase.apiKey && o.firebase.projectId && typeof o.teamId === 'string' && /^[A-Za-z0-9_-]{6,80}$/.test(o.teamId) ? {firebase: o.firebase, teamId: o.teamId} : null; }
 function readSync(){
   const m = location.hash.match(/^#join=([A-Za-z0-9_-]+)$/);
-  if (m){
-    try { const o = validSync(b64d(m[1])); if (o){ localStorage.setItem(LS_SYNC, JSON.stringify(o)); history.replaceState(null, '', location.pathname + location.search); } } catch (e){}
+  const q = new URLSearchParams(location.search).get('join');
+  const code = m ? m[1] : (q && /^[A-Za-z0-9_-]+$/.test(q) ? q : null);
+  if (code){
+    try { const o = validSync(b64d(code)); if (o){ localStorage.setItem(LS_SYNC, JSON.stringify(o)); if (m) history.replaceState(null, '', location.pathname + location.search); } } catch (e){}
   }
   try { const o = validSync(JSON.parse(localStorage.getItem(LS_SYNC) || 'null')); if (o) return {...o, source: 'browser'}; } catch (e){}
   const d = validSync(typeof DEFAULT_SYNC !== 'undefined' ? DEFAULT_SYNC : null); if (d) return {...d, source: 'file'};
@@ -990,9 +1067,9 @@ async function connect(){
   }
   S.sync = readSync();
   if (S.sync){
-    try { attach(await firebaseStore(S.sync.firebase, S.sync.teamId)); return; }
+    try { const st = await firebaseStore(S.sync.firebase, S.sync.teamId); if (st) attach(st); return; }
     catch (e){
-      console.error(e);
+      console.error(e); gateHide();
       attach(localStore(readLocalData() || clone(BUILD.seed || emptyData()), LS_DATA));
       banner(`Team sync could not start (${(e && (e.code || e.message)) || 'unknown error'}). Showing the plan saved in this browser instead. Check the settings under “Data & export”.`);
       S.syncError = (e && (e.code || e.message)) || 'unknown error';
@@ -1022,7 +1099,7 @@ async function writeError(e, again){
   if ((code === 'invalid_argument' && S.canWriteKnown !== true && STORE.kind === 'claude') || code === 'revoked' || code === 'not_granted'){
     setReadOnly(); toast('You can view this plan but not change it. Ask the owner for edit access.'); return false;
   }
-  if (code === 'permission-denied'){ toast('The team database refused the change. Check the Firestore rules and that Anonymous sign-in is enabled.'); return false; }
+  if (code === 'permission-denied'){ toast(`Not saved: ${S.userEmail || 'your address'} is not on the team list.`); return false; }
   if (code === 'quota_exceeded' || code === 'resource-exhausted'){ toast('The shared plan is over its storage limit. Delete old entries, then try again.'); return false; }
   if (code === 'resource_exhausted'){ toast('Too many changes at once. Wait a moment and try again.'); return false; }
   toast('Could not save: ' + ((e && e.message) || 'unknown error')); return false;
@@ -1048,7 +1125,11 @@ function onSnapErr(name, e){
   const code = (e && e.code) || 'error';
   if (code === 'revoked'){ setReadOnly(); return; }
   S.mode = 'offline'; renderHeader();
-  banner(code === 'permission-denied' ? 'The team database refused access. In Firebase, check the Firestore rules and that Anonymous sign-in is enabled (see “Data & export”).' : `The shared plan stopped updating (${code}). Reload the page to reconnect.`);
+  if (code === 'permission-denied' && STORE && STORE.kind === 'firebase'){
+    if (S.denied) return; S.denied = true;
+    banner(`You are signed in as ${S.userEmail || 'unknown'}, but this address is not on the team list. Ask the person who runs the plan to add it, or sign out under “Data & export” and use another address.`); return;
+  }
+  banner(code === 'permission-denied' ? 'The team database refused access. Check the Firestore rules (see “Data & export”).' : `The shared plan stopped updating (${code}). Reload the page to reconnect.`);
 }
 function setReadOnly(){
   S.readOnly = true; S.mode = 'readonly'; document.body.classList.add('ro');
@@ -1070,15 +1151,24 @@ function renderAll(){
   const ae = document.activeElement; const fk = ae && ae.dataset ? ae.dataset.fk : null;
   if (!monthPicked && S.got.campaigns){ S.month = pickMonth(); monthPicked = true; }
   if (!aptPicked && S.got.campaigns && S.got.stays){ S.aptMonth = pickAptMonth(); aptPicked = true; }
-  renderHeader(); renderAttention(); fillPersonFilters(); renderView();
+  renderHeader(); renderAttention(); fillPersonFilters(); renderView(); backupNag();
   $('#team-n').textContent = peopleSorted().length;
   if (fk){ const el = document.querySelector(`[data-fk="${CSS.escape(fk)}"]`); if (el && el !== document.activeElement) el.focus({preventScroll: true}); }
+}
+function backupNag(){
+  let el = $('#nag'); if (!el){ el = document.createElement('div'); el.id = 'nag'; el.className = 'banner'; el.hidden = true; $('#banner').after(el); }
+  let last = 0, snooze = 0; try { last = +localStorage.getItem(LS_BACKUP) || 0; snooze = +localStorage.getItem(LS_BACKUP + '-snooze') || 0; } catch (e){ el.hidden = true; return; }
+  const days = last ? Math.floor((Date.now() - last) / 86400000) : null;
+  const due = STORE && S.fresh && S.campaigns.size > 0 && (STORE.kind === 'firebase' || (STORE.kind === 'local' && STORE.persistent));
+  if (!due || S.readOnly || (days != null && days < 7) || Date.now() - snooze < 86400000){ el.hidden = true; return; }
+  el.innerHTML = `${days == null ? 'No backup downloaded on this device yet.' : `Last backup from this device: ${days} days ago.`} A weekly backup keeps the plan safe if something is deleted by mistake. <button class="btn small primary" data-act="dl-backup" style="margin-left:8px">Download backup</button> <button class="btn small ghost" data-act="nag-later">Remind me tomorrow</button>`;
+  el.hidden = false;
 }
 function renderHeader(){
   const el = $('#sync'), tx = $('#sync-text');
   const m = S.readOnly ? 'readonly' : S.mode; el.dataset.state = m === 'readonly' ? 'local' : m;
   const kind = STORE ? STORE.kind : '';
-  tx.textContent = ({connecting: 'Connecting…', live: kind === 'firebase' ? 'Live · team sync' : 'Live · shared', local: 'Saved in this browser', preview: 'Preview · not saved', offline: 'Not connected', readonly: 'View only'})[m];
+  tx.textContent = ({signin: 'Sign-in needed', connecting: 'Connecting…', live: kind === 'firebase' ? 'Live · team sync' : 'Live · shared', local: 'Saved in this browser', preview: 'Preview · not saved', offline: 'Not connected', readonly: 'View only'})[m];
   el.title = ({live: 'Changes are saved for everyone on the team.', local: 'Only this browser keeps the plan. Use “Data & export” for backups or team sync.', preview: 'Nothing is saved in this view.', offline: 'The shared plan cannot be reached right now.', readonly: 'You can look at the plan but not change it.'})[m] || '';
 }
 function renderView(){
@@ -1862,14 +1952,26 @@ function parseFirebaseConfig(txt){
   if (!o || !o.apiKey || !o.projectId) throw new Error('The config needs at least apiKey and projectId.');
   return o;
 }
-const RULES = `rules_version = '2';
+function rulesFor(emails){
+  const list = [...new Set(emails.map(x => x.trim().toLowerCase()).filter(x => /^[^\s@'"]+@[^\s@'"]+\.[^\s@'"]+$/.test(x)))];
+  return `rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Team members who may open and edit the plan. One address per line, lower case.
+    function onTeamList() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email.lower() in [
+${list.length ? list.map(x => `          '${x}'`).join(',\n') : "          'you@example.org'"}
+        ];
+    }
     match /teams/{teamId}/{document=**} {
-      allow read, write: if request.auth != null;
+      allow read, write: if onTeamList();
     }
   }
 }`;
+}
+const RULES = rulesFor([]);
 function inviteURL(){ const base = location.href.split('#')[0]; return `${base}#join=${b64e({firebase: S.sync.firebase, teamId: S.sync.teamId})}`; }
 function openData(){
   const ro = S.readOnly; const kind = STORE ? STORE.kind : '';
@@ -1878,10 +1980,15 @@ function openData(){
     <div class="btns"><button class="btn primary" data-act="dl-backup">Download backup (.json)</button>${ro ? '' : '<button class="btn" data-act="import" data-mode="merge">Import: add &amp; update</button><button class="btn danger" data-act="import" data-mode="replace">Import: replace everything</button>'}</div><div class="d-meta" id="import-progress"></div></div>`;
   if (STANDALONE){
     if (kind === 'firebase'){
-      body += `<div class="box"><h3>Team sync is on</h3><p>Everyone with the invite link works on the same plan, live. Team ID <span class="mono">${esc(S.sync.teamId)}</span> in Firebase project <span class="mono">${esc(S.sync.firebase.projectId)}</span>.</p>
+      body += `<div class="box"><h3>Team sync is on</h3><p>Signed in as <b>${esc(S.userEmail || '?')}</b>. Team ID <span class="mono">${esc(S.sync.teamId)}</span> in Firebase project <span class="mono">${esc(S.sync.firebase.projectId)}</span>. Only addresses on the team list can open the plan; the invite link only tells their browser where the plan is.</p>
+        <div class="btns"><button class="btn small" data-act="sign-out">Sign out</button></div>
         <label class="fld"><span class="lbl">Invite link (for the hosted page)</span><input class="inp mono" id="inv-link" readonly value="${esc(inviteURL())}"></label>
         <div class="btns"><button class="btn" data-act="copy-invite">Copy invite link</button><button class="btn" data-act="copy-code">Copy invite code</button>${S.sync.source === 'browser' ? '<button class="btn danger" data-act="sync-off">Disconnect this browser</button>' : ''}</div>
-        <p>The link and code carry the team ID: share them only with the team. ${S.sync.source === 'file' ? 'This file has the team settings built in.' : ''}</p></div>`;
+        <p>Anyone not on the list who opens the link can request a sign-in email but still sees nothing.</p></div>
+        <div class="box"><h3>Who may join</h3><p>The team list lives in the Firestore rules. Enter everyone's email address, create the rules, paste them in Firebase under Firestore Database → Rules and click Publish. To remove someone, delete their address and publish again.</p>
+        <label class="fld" for="acl-emails"><span class="lbl">Email addresses (one per line)</span><textarea class="inp mono" id="acl-emails" placeholder="name@uni-hamburg.de">${esc(S.userEmail || '')}</textarea></label>
+        <div class="btns"><button class="btn" data-act="make-rules">Create rules</button></div>
+        <div id="rules-wrap" hidden><pre class="code" id="rules-text"></pre><div class="btns" style="margin-top:8px"><button class="btn small" data-act="copy-rules">Copy rules</button></div></div></div>`;
     } else {
       body += `<div class="box"><h3>Team sync (optional)</h3><p>${S.syncError ? `<b>Sync failed:</b> ${esc(S.syncError)}. ` : ''}Right now the plan lives only in this browser. To edit it together, connect a free Firebase project once and send the team an invite. Nothing here needs a Claude account.</p>
         <label class="fld" for="sy-config"><span class="lbl">Firebase config</span><textarea class="inp mono" id="sy-config" placeholder='const firebaseConfig = { apiKey: "…", authDomain: "…", projectId: "…", appId: "…" };'>${S.sync ? esc(JSON.stringify(S.sync.firebase, null, 1)) : ''}</textarea></label>
@@ -1892,10 +1999,11 @@ function openData(){
         <details><summary>How to set up Firebase (about 10 minutes)</summary>
         <ol class="steps"><li>Open console.firebase.google.com and create a project (the free Spark plan is enough). Use a new project just for the team.</li>
         <li>Build → Firestore Database → Create database (production mode, location e.g. europe-west3 Frankfurt).</li>
-        <li>Firestore → Rules: replace everything with the rules below and publish.</li>
-        <li>Build → Authentication → Get started → Sign-in method → enable <b>Anonymous</b>.</li>
+        <li>Firestore → Rules: paste the rules below with your own email address in place of you@example.org, then publish. You add the rest of the team later under “Who may join”.</li>
+        <li>Build → Authentication → Get started → Sign-in method → Email/Password: switch on <b>Email link (passwordless sign-in)</b>. Optional: also enable <b>Google</b>; the free plan sends only 5 sign-in emails a day.</li>
+        <li>Authentication → Settings → Authorised domains: add the address you host the page on, e.g. <span class="mono">yourname.github.io</span>.</li>
         <li>Project settings → Your apps → add a Web app (&lt;/&gt;) and copy the firebaseConfig into the box above.</li>
-        <li>Connect, then load the starter plan or import a backup. Host this file (e.g. GitHub Pages) and send the invite link.</li></ol>
+        <li>Host this file (e.g. GitHub Pages; sign-in does not work from a file opened on your computer), open it there, connect, sign in with your email, then load the starter plan or import a backup and send the invite link.</li></ol>
         <pre class="code" id="rules-text">${esc(RULES)}</pre><div class="btns"><button class="btn small" data-act="copy-rules">Copy rules</button></div></details></div>`;
     }
     if (kind === 'local') body += `<div class="box"><h3>Start over</h3><p>Reset this browser to the starter plan from the 2026 sheet. Download a backup first if you want to keep your changes.</p><div class="btns"><button class="btn danger" data-act="reset-seed">Reset to starter plan</button></div></div>`;
@@ -1969,14 +2077,17 @@ document.addEventListener('click', async e => {
     case 'copy-summary': copyText(summaryText(), 'Campaign list'); break;
     case 'dl-campaigns': saveFile(`MERIT_field_campaigns_${YEAR}.csv`, campaignsCSV()); break;
     case 'dl-plan': saveFile(`MERIT_measurement_plan_${YEAR}.csv`, planCSV()); break;
-    case 'dl-backup': saveFile(`MERIT_planner_backup_${TODAY}.json`, JSON.stringify(backupObject(), null, 1)); break;
+    case 'dl-backup': saveFile(`MERIT_planner_backup_${TODAY}.json`, JSON.stringify(backupObject(), null, 1)); try { localStorage.setItem(LS_BACKUP, String(Date.now())); } catch (err){} backupNag(); break;
+    case 'nag-later': try { localStorage.setItem(LS_BACKUP + '-snooze', String(Date.now())); } catch (err){} backupNag(); break;
     case 'import': startImport(el.dataset.mode || 'merge'); break;
     case 'load-seed': if (BUILD.seed && await runBatch(entriesFromData(clone(BUILD.seed), 'merge'), 'Loading')) toast('Starter plan loaded.'); break;
     case 'upload-local': { const loc = readLocalData(); if (loc && await runBatch(entriesFromData(loc, 'merge'), 'Uploading')) toast('Uploaded the plan from this browser.'); break; }
     case 'reset-seed': if (BUILD.seed && STORE.kind === 'local'){ const ok = await runBatch(entriesFromData(clone(BUILD.seed), 'replace'), 'Resetting'); if (ok){ closeDrawer(true); toast('Back to the starter plan.'); } } break;
     case 'copy-invite': copyText(inviteURL(), 'Invite link'); break;
     case 'copy-code': copyText(b64e({firebase: S.sync.firebase, teamId: S.sync.teamId}), 'Invite code'); break;
-    case 'copy-rules': copyText(RULES, 'Firestore rules'); break;
+    case 'copy-rules': copyText(($('#rules-text') || {}).textContent || RULES, 'Firestore rules'); break;
+    case 'make-rules': { const t = $('#acl-emails').value.split(/[\s,;]+/); $('#rules-text').textContent = rulesFor(t); $('#rules-wrap').hidden = false; break; }
+    case 'sign-out': if (S.signOut){ S.signOut().then(() => location.reload()); } break;
     case 'sync-on': {
       let cfg; try { cfg = parseFirebaseConfig($('#sy-config').value); } catch (err){ toast(err.message); return; }
       const team = $('#sy-team').value.trim(); if (!/^[A-Za-z0-9_-]{6,80}$/.test(team)){ toast('Use 6–80 letters, digits, - or _ for the team ID.'); return; }
@@ -1984,7 +2095,7 @@ document.addEventListener('click', async e => {
       location.reload(); break;
     }
     case 'sync-join': { let o = null; try { o = validSync(b64d($('#sy-code').value.trim())); } catch (err){} if (!o){ toast('That invite code is not valid.'); return; } try { localStorage.setItem(LS_SYNC, JSON.stringify(o)); } catch (err){} location.reload(); break; }
-    case 'sync-off': try { localStorage.removeItem(LS_SYNC); } catch (err){} location.reload(); break;
+    case 'sync-off': try { localStorage.removeItem(LS_SYNC); localStorage.removeItem(LS_EMAIL); } catch (err){} location.replace(location.pathname); break;
   }
 });
 document.addEventListener('submit', async e => {
